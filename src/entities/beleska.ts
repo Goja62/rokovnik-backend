@@ -2,7 +2,7 @@ import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, }
 import { Kontakt } from "./kontakt";
 
 @Index("fk_beleska_kontakt_id", ["kontaktId"], {})
-@Entity("beleska", { schema: "rokovnik" })
+@Entity("beleska")
 export class Beleska {
   @PrimaryGeneratedColumn({ 
     type: "int", 
@@ -24,11 +24,10 @@ export class Beleska {
   })
   opisBeleske: string;
 
-  @ManyToOne(
-    () => Kontakt, (kontakt) => kontakt.beleske, { onDelete: "RESTRICT", onUpdate: "CASCADE", }
-  )
-  @JoinColumn(
-    [{ name: "kontakt_id", referencedColumnName: "kontaktId" }]
-  )
+  @ManyToOne(() => Kontakt, (kontakt) => kontakt.beleske, {
+    onDelete: "RESTRICT",
+    onUpdate: "CASCADE",
+  })
+  @JoinColumn([{ name: "kontakt_id", referencedColumnName: "kontaktId" }])
   kontakt: Kontakt;
 }

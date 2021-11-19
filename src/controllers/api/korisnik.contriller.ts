@@ -1,0 +1,35 @@
+import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common";
+import { DatabaseConfgf } from "config/database.config";
+import { AddKorisnikDto } from "src/dtos/korisnik/add.korisnik.dto";
+import { EditKorisnikDto } from "src/dtos/korisnik/edit.korisnik.dto";
+import { Korisnik } from "src/entities/korisnik";
+import { ApiResponse } from "src/misc/api.response";
+import { KorisnikService } from "src/services/korisnik/korisnik.service";
+
+@Controller('api/korisnik')
+export class KorisnikController {
+    constructor(private korisnikService: KorisnikService) { }
+
+    @Get() //Get http://localhost:3000/api/korisnik
+    async sviKorisnici(): Promise<Korisnik[]> {
+        return await this.korisnikService.sviKorisnici()
+    }
+
+    @Get(':id') //Get http://localhost:3000/api/korisnik:id
+    async jedanKorisnik(@Param('id') korisnikId: number): Promise<Korisnik | ApiResponse> {
+        return await this.korisnikService.jedanKorisnik(korisnikId)
+    }
+    
+    @Post('add') // POST http://localhost:3000/api/korisnik/add
+    async addKorisnik(@Body() data: AddKorisnikDto): Promise<Korisnik | ApiResponse> {
+        return await this.korisnikService.addKorisnik(data)
+    }
+
+    @Patch('edit/:id')
+    async editKorisnik(@Param('id') korisnikId: number, @Body() data: EditKorisnikDto): Promise<Korisnik | ApiResponse> {
+        return await this.korisnikService.editKorisnik(korisnikId, data)
+    }
+
+
+
+}

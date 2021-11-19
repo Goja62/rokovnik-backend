@@ -1,10 +1,21 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatabaseConfgf } from 'config/database.config';
-import { AppController } from './app.controller';
+import { AppController } from './controllers/app.controller';
 import { AdministratorController } from './controllers/api/administrator.controller';
-import { Administrator } from './entities/administrator';
 import { AdministratorService } from './services/administrator.service';
+import { KorisnikController } from './controllers/api/korisnik.contriller';
+import { KorisnikService } from './services/korisnik/korisnik.service';
+import { Administrator } from './entities/administrator';
+import { Beleska } from './entities/beleska';
+import { Korisnik } from './entities/korisnik';
+import { Kontakt } from './entities/kontakt';
+import { KorisnikToken } from './entities/korisnik-token';
+import { Dogadjaj } from './entities/dogadjaj';
+import { Fotografija } from './entities/fotografija';
+import { Mesto } from './entities/mesto';
+import { Zadatak } from './entities/zadatak';
+import { Telefon } from './entities/telefon';
 
 @Module({
   imports: [
@@ -17,16 +28,38 @@ import { AdministratorService } from './services/administrator.service';
       database: DatabaseConfgf.database,
       entities: [
         Administrator,
+        Beleska,
+        Korisnik,
+        Kontakt,
+        KorisnikToken,
+        Dogadjaj,
+        Fotografija,
+        Mesto,
+        Zadatak,
+        Telefon
       ]
     }),
     TypeOrmModule.forFeature([
       Administrator,
+      Beleska,
+      Korisnik,
+      Kontakt,
+      KorisnikToken,
+      Dogadjaj,
+      Fotografija,
+      Mesto,
+      Zadatak,
+      Telefon
     ])
   ],
   controllers: [
     AppController,
-    AdministratorController
+    AdministratorController,
+    KorisnikController,
   ],
-  providers: [AdministratorService],
+  providers: [
+    AdministratorService,
+    KorisnikService,
+  ],
 })
 export class AppModule {}
