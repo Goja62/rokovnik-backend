@@ -1,9 +1,9 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatabaseConfgf } from 'config/database.config';
 import { AppController } from './controllers/app.controller';
 import { AdministratorController } from './controllers/api/administrator.controller';
-import { AdministratorService } from './services/administrator.service';
+import { AdministratorService } from './services/administrator/administrator.service';
 import { KorisnikController } from './controllers/api/korisnik.contriller';
 import { KorisnikService } from './services/korisnik/korisnik.service';
 import { Administrator } from './entities/administrator';
@@ -20,6 +20,8 @@ import { KontaktController } from './controllers/api/kontakt.controller';
 import { KontaktService } from './services/kontakt/kontakt.service';
 import { TelefonController } from './controllers/api/telefon.controller';
 import { TelefonService } from './services/telefon/telefon.service';
+import { AuthController } from './controllers/auth.controller';
+import { AuthMiddleware } from './middlewares/auth.middleware';
 
 @Module({
   imports: [
@@ -62,6 +64,7 @@ import { TelefonService } from './services/telefon/telefon.service';
     KorisnikController,
     KontaktController,
     TelefonController,
+    AuthController,
   ],
   providers: [
     AdministratorService,
@@ -69,5 +72,15 @@ import { TelefonService } from './services/telefon/telefon.service';
     KontaktService,
     TelefonService,
   ],
+  exports: [
+    AdministratorService,
+  ]
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(AuthMiddleware)
+      .exclude('auth/*')
+      .forRoutes('api/*')
+  }
+}

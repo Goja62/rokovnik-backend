@@ -14,8 +14,20 @@ export class AdministratorService {
         return await this.administrator.find()
     }
 
-    async jedanAdministrator(id: number): Promise<Administrator> {
-        return await this.administrator.findOne(id)
+    jedanAdministrator(id: number): Promise<Administrator> {
+        return this.administrator.findOne(id)
+    }
+
+    async getAdministratorByUsername(username: string): Promise<Administrator | null> {
+       const administrator: Administrator = await this.administrator.findOne({
+           username: username,
+       })
+
+       if (!administrator) {
+           return null
+       }
+
+       return administrator
     }
 
     async addAdministrator(data: AddAdminisratorDto): Promise<Administrator> {
