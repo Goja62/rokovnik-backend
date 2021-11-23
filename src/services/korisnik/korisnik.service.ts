@@ -14,7 +14,12 @@ export class KorisnikService {
     }
 
     async sviKorisnici(): Promise<Korisnik[]> {
-        return await this.korisnik.find()
+        return await this.korisnik.find({
+            relations: [
+                "kontakti",
+                "kontakti.telefoni"
+            ]
+        })
     }
 
     async jedanKorisnik(korisnikId: number): Promise<Korisnik | ApiResponse> {
@@ -27,7 +32,7 @@ export class KorisnikService {
         return korisnik
     }
 
-    async addKorisnik(@Body() data: AddKorisnikDto): Promise<Korisnik | ApiResponse> {
+    async addKorisnik(data: AddKorisnikDto): Promise<Korisnik | ApiResponse> {
         const passwordHash = crypto.createHash('sha512')
         passwordHash.update(data.password);
         const passwordHashString = passwordHash.digest('hex')

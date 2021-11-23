@@ -50,19 +50,12 @@ export class Kontakt {
   })
   mesto: string | null;
 
-  @Column({
-    type: "varchar",
-    nullable: true,
-    length: 50,
-  })
-  grad: string | null;
-
   @Column({ 
     type: "datetime",
     name: "datum_rodjenja", 
     nullable: true 
   })
-  datumRodjenja: Date | null;
+  datumRodjenja: string | null;
 
   @Column({ 
     type: "int",

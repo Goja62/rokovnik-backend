@@ -16,6 +16,10 @@ import { Fotografija } from './entities/fotografija';
 import { Mesto } from './entities/mesto';
 import { Zadatak } from './entities/zadatak';
 import { Telefon } from './entities/telefon';
+import { KontaktController } from './controllers/api/kontakt.controller';
+import { KontaktService } from './services/kontakt/kontakt.service';
+import { TelefonController } from './controllers/api/telefon.controller';
+import { TelefonService } from './services/telefon/telefon.service';
 
 @Module({
   imports: [
@@ -56,10 +60,14 @@ import { Telefon } from './entities/telefon';
     AppController,
     AdministratorController,
     KorisnikController,
+    KontaktController,
+    TelefonController,
   ],
   providers: [
     AdministratorService,
     KorisnikService,
+    KontaktService,
+    TelefonService,
   ],
 })
 export class AppModule {}
