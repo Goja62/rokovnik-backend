@@ -16,7 +16,10 @@ export class KontaktService {
 
     async sviKontakti(): Promise<Kontakt[]> {
         return await this.kontakt.find({
-            relations: ["telefoni"]
+            relations: [
+                "telefoni",
+                "fotografija"
+            ]
         })
     }
 

@@ -1,14 +1,21 @@
-import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common";
-import { DatabaseConfgf } from "config/database.config";
+import { Body, Controller, Get, Param, Patch, Post, UploadedFile, UseInterceptors } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 import { AddKorisnikDto } from "src/dtos/korisnik/add.korisnik.dto";
 import { EditKorisnikDto } from "src/dtos/korisnik/edit.korisnik.dto";
 import { Korisnik } from "src/entities/korisnik";
 import { ApiResponse } from "src/misc/api.response";
 import { KorisnikService } from "src/services/korisnik/korisnik.service";
+import { diskStorage } from "multer"
+import { StorageConfig } from "config/storage.config";
+import { SlikaService } from "src/services/slika/slika.service";
+import { Fotografija } from "src/entities/fotografija";
+import { Kontakt } from "src/entities/kontakt";
 
 @Controller('api/korisnik')
 export class KorisnikController {
-    constructor(private korisnikService: KorisnikService) { }
+    constructor(
+        private korisnikService: KorisnikService,
+    ) { }
 
     @Get() //Get http://localhost:3000/api/korisnik
     async sviKorisnici(): Promise<Korisnik[]> {
@@ -29,7 +36,4 @@ export class KorisnikController {
     async editKorisnik(@Param('id') korisnikId: number, @Body() data: EditKorisnikDto): Promise<Korisnik | ApiResponse> {
         return await this.korisnikService.editKorisnik(korisnikId, data)
     }
-
-
-
 }

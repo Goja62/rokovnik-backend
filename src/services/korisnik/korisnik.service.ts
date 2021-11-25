@@ -1,4 +1,4 @@
-import { Body, Injectable } from "@nestjs/common";
+import { Body, Injectable, Param, Post } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { AddKorisnikDto } from "src/dtos/korisnik/add.korisnik.dto";
 import { Korisnik } from "src/entities/korisnik";
@@ -9,9 +9,7 @@ import { EditKorisnikDto } from "src/dtos/korisnik/edit.korisnik.dto";
 
 @Injectable()
 export class KorisnikService {
-    constructor(@InjectRepository(Korisnik) private readonly korisnik: Repository<Korisnik>) {
-
-    }
+    constructor(@InjectRepository(Korisnik) private readonly korisnik: Repository<Korisnik>) { }
 
     async sviKorisnici(): Promise<Korisnik[]> {
         return await this.korisnik.find({
@@ -81,5 +79,5 @@ export class KorisnikService {
 
         return await this.korisnik.save(korisnik)
     }
-   
+
 }

@@ -20,8 +20,9 @@ import { KontaktController } from './controllers/api/kontakt.controller';
 import { KontaktService } from './services/kontakt/kontakt.service';
 import { TelefonController } from './controllers/api/telefon.controller';
 import { TelefonService } from './services/telefon/telefon.service';
-import { AuthController } from './controllers/auth.controller';
+import { AuthController } from './controllers/api/auth.controller';
 import { AuthMiddleware } from './middlewares/auth.middleware';
+import { SlikaService } from './services/slika/slika.service';
 
 @Module({
   imports: [
@@ -71,6 +72,7 @@ import { AuthMiddleware } from './middlewares/auth.middleware';
     KorisnikService,
     KontaktService,
     TelefonService,
+    SlikaService,
   ],
   exports: [
     AdministratorService,

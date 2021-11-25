@@ -23,8 +23,13 @@ export class AuthMiddleware implements NestMiddleware {
 
         const tokenString = tokenDelovi[1]
 
-        const jwtData: JwtDataAdministartorDto = jwt.verify(tokenString, jwtSecret)
+        let jwtData: JwtDataAdministartorDto;
 
+        try {
+            jwtData = jwt.verify(tokenString, jwtSecret)
+        } catch (e) {
+            throw new HttpException('Token nije pronađen', HttpStatus.UNAUTHORIZED)
+        }
         
         if (!jwtData) {
             throw new HttpException('Pogrešan token', HttpStatus.UNAUTHORIZED)
