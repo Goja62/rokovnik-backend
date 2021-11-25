@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Req, UploadedFile, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UploadedFile, UseInterceptors } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { StorageConfig } from "config/storage.config";
 import { diskStorage } from "multer";
@@ -143,4 +143,31 @@ export class KontaktController {
        
         return sacuvanaSlika;
     }
-}
+
+    @Delete(':kontaktId/deleteSlika/:slikaId') // DELETE http://localhost:3000/api/kontakt/:kontaktId/delete/:slikaId
+    async deleteSlika(@Param('kontaktId') kontaktId: number, @Param('slikaId') slikaId: number) {
+        const slika = await this.slikaService.findOne({
+            kontaktId: kontaktId,
+            fotografijaId: slikaId
+        })
+
+        if (!slika) {
+            return new ApiResponse('Greška', -5005, "Nije pronađena nijedna slika")
+        }
+
+        try {
+            fs.unlinkSync(StorageConfig.slika.destinacija + slika.putanja);
+            fs.unlinkSync(StorageConfig.slika.destinacija + StorageConfig.slika.resize.small.directory + slika.putanja)
+            fs.unlinkSync(StorageConfig.slika.destinacija + StorageConfig.slika.resize.thumb.directory + slika.putanja)
+        } catch (e) { }
+        
+
+        const obrisanaSlika = await this.slikaService.brisanjeSlike(slika.fotografijaId) 
+
+        if (obrisanaSlika.affected === 0) {
+            return new ApiResponse('Greška', -5005, "Nije pronađena nijedna slika")
+        }
+
+        return new ApiResponse('OK', 0, 'Obrisana je jedna fotografija')
+    }
+}   
