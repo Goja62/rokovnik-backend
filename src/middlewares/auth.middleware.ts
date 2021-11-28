@@ -2,12 +2,16 @@ import { HttpException, HttpStatus, Injectable, NestMiddleware } from "@nestjs/c
 import { NextFunction, Request, Response } from "express";
 import { AdministratorService } from "src/services/administrator/administrator.service";
 import * as jwt from "jsonwebtoken"
-import { JwtDataAdministartorDto } from "src/dtos/administrator/jwt.data.administrator.dto";
+import { JwtDataDto } from "src/dtos/auth/jwt.data.dto";
 import { jwtSecret } from "config/jwt.secret";
+import { KorisnikService } from "src/services/korisnik/korisnik.service";
 
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
-    constructor(public readonly administratorService: AdministratorService) {}
+    constructor(
+        public readonly administratorService: AdministratorService,
+        public readonly korisnikService: KorisnikService,
+    ) {}
 
     async use(req: Request, res: Response, next: NextFunction) {
         if (!req.headers.authorization) {
@@ -23,7 +27,7 @@ export class AuthMiddleware implements NestMiddleware {
 
         const tokenString = tokenDelovi[1]
 
-        let jwtData: JwtDataAdministartorDto;
+        let jwtData: JwtDataDto;
 
         try {
             jwtData = jwt.verify(tokenString, jwtSecret)
@@ -43,15 +47,28 @@ export class AuthMiddleware implements NestMiddleware {
             throw new HttpException('Netačne informacije i user-agentu', HttpStatus.UNAUTHORIZED)
         }
 
-        const administrator = await this.administratorService.jedanAdministrator(jwtData.administratorId)
-        if (!administrator) {
-            throw new HttpException('Nije pronađen administrator', HttpStatus.UNAUTHORIZED)
+        switch(jwtData.role) {
+            case "administrator":
+                const administrator = await this.administratorService.jedanAdministrator(jwtData.id)
+            if (!administrator) {
+                throw new HttpException('Nije pronađen administrator', HttpStatus.UNAUTHORIZED)
+            }
+                break;
+
+            case "korisnik":
+                const korisnik = await this.korisnikService.jedanKorisnik(jwtData.id)
+            if (!korisnik) {
+                throw new HttpException('Nije pronađen koisnik', HttpStatus.UNAUTHORIZED)
+            }
+            break;
         }
         
         const trenutnoVreme = new Date().getTime() / 1000
         if (trenutnoVreme >= jwtData.exp) {
             throw new HttpException('Token je istekao', HttpStatus.UNAUTHORIZED)
         }
+
+        req.token = jwtData;
 
         next();
     }

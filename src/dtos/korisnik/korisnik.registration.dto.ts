@@ -1,4 +1,4 @@
-export class AddKorisnikDto {
+export class KorisnikRegistrationDto {
     email: string;
     password: string;
     prezime: string;

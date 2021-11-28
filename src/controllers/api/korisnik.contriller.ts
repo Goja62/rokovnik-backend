@@ -1,6 +1,5 @@
 import { Body, Controller, Get, Param, Patch, Post, UploadedFile, UseInterceptors } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { AddKorisnikDto } from "src/dtos/korisnik/add.korisnik.dto";
 import { EditKorisnikDto } from "src/dtos/korisnik/edit.korisnik.dto";
 import { Korisnik } from "src/entities/korisnik";
 import { ApiResponse } from "src/misc/api.response";
@@ -10,6 +9,7 @@ import { StorageConfig } from "config/storage.config";
 import { SlikaService } from "src/services/slika/slika.service";
 import { Fotografija } from "src/entities/fotografija";
 import { Kontakt } from "src/entities/kontakt";
+import { KorisnikRegistrationDto } from "src/dtos/korisnik/korisnik.registration.dto";
 
 @Controller('api/korisnik')
 export class KorisnikController {
@@ -28,7 +28,7 @@ export class KorisnikController {
     }
     
     @Post('add') // POST http://localhost:3000/api/korisnik/add
-    async addKorisnik(@Body() data: AddKorisnikDto): Promise<Korisnik | ApiResponse> {
+    async addKorisnik(@Body() data: KorisnikRegistrationDto): Promise<Korisnik | ApiResponse> {
         return await this.korisnikService.addKorisnik(data)
     }
 

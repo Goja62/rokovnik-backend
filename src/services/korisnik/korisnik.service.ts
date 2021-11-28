@@ -1,11 +1,11 @@
 import { Body, Injectable, Param, Post } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { AddKorisnikDto } from "src/dtos/korisnik/add.korisnik.dto";
 import { Korisnik } from "src/entities/korisnik";
-import { Repository } from "typeorm";
+import { Repository, UsingJoinColumnIsNotAllowedError } from "typeorm";
 import * as crypto from "crypto";
 import { ApiResponse } from "src/misc/api.response";
 import { EditKorisnikDto } from "src/dtos/korisnik/edit.korisnik.dto";
+import { KorisnikRegistrationDto } from "src/dtos/korisnik/korisnik.registration.dto";
 
 @Injectable()
 export class KorisnikService {
@@ -30,10 +30,22 @@ export class KorisnikService {
         return korisnik
     }
 
-    async addKorisnik(data: AddKorisnikDto): Promise<Korisnik | ApiResponse> {
+    async getKorisnikByEmail(email: string): Promise<Korisnik | null> {
+        const korisnik: Korisnik = await this.korisnik.findOne({
+            email: email,
+        })
+ 
+        if (!korisnik) {
+            return null
+        }
+ 
+        return korisnik
+     }
+
+    async addKorisnik(data: KorisnikRegistrationDto): Promise<Korisnik | ApiResponse> {
         const passwordHash = crypto.createHash('sha512')
         passwordHash.update(data.password);
-        const passwordHashString = passwordHash.digest('hex')
+        const passwordHashString = passwordHash.digest('hex').toUpperCase()
         
         const newKorisnik = new Korisnik()
         newKorisnik.email = data.email;
@@ -58,6 +70,7 @@ export class KorisnikService {
 
     async editKorisnik(korisnikId: number, data: EditKorisnikDto): Promise<Korisnik | ApiResponse> {
         let korisnik: Korisnik = await this.korisnik.findOne(korisnikId)
+        console.log(korisnikId)
         if  (data.email === korisnik.email) {
             return new ApiResponse('Greška', -1002, 'U bazi već postoji email ' + data.email)
         }

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UploadedFile, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { StorageConfig } from "config/storage.config";
 import { diskStorage } from "multer";
@@ -12,6 +12,8 @@ import { SlikaService } from "src/services/slika/slika.service";
 import * as fs from 'fs';
 import * as fileType from "file-type"
 import { Funkcije } from "src/misc/funkcije";
+import { AllowToRoles } from "src/misc/allow.to.roles.descriptor";
+import { RoleCheckerGuard } from "src/misc/role.checker.guard";
 let funkcija = new Funkcije()
 
 @Controller('api/kontakt')
@@ -22,35 +24,43 @@ export class KontaktController {
     ) {  }
 
     @Get()
+    @UseGuards(RoleCheckerGuard)
+    @AllowToRoles('administrator', "korisnik")
     async sviKontakti(): Promise<Kontakt[]> {
        return await this.kontaktService.sviKontakti()
     }
 
     @Get(':id')
+    @UseGuards(RoleCheckerGuard)
+    @AllowToRoles('administrator', "korisnik")
     async jedanKontakt(@Param('id') kontaktId: number) {
         return await this.kontaktService.jedanKontakt(kontaktId)
     }
 
     @Post('add')
+    @UseGuards(RoleCheckerGuard)
+    @AllowToRoles("korisnik")
     async addKontakt(@Body() data: AddKontaktDto): Promise<Kontakt> {
         return await this.kontaktService.addKontakt(data)
     }
 
     @Patch('edit/:id')
+    @UseGuards(RoleCheckerGuard)
+    @AllowToRoles("korisnik")
     async editKontakt(@Param('id') kontaktId: number, @Body() data: EditKontaktDto): Promise<Kontakt | ApiResponse> {
         return await this.kontaktService.editKontak(kontaktId, data)
     }
 
     @Get('/:id/fotografija') // GET http://localhost:3000/api/kontakt/:id/
+    @UseGuards(RoleCheckerGuard)
+    @AllowToRoles('administrator', "korisnik")
     async findOnePhoto(@Param('id') kontaktId: number): Promise<Fotografija | ApiResponse> {
-        const fotografija = await this.slikaService.findOnePhoto(kontaktId)
-
-       
-
-        return fotografija
+       return await this.slikaService.findOnePhoto(kontaktId)
     }
 
     @Post(':id/uploadPhoto') // POST http://localhost:3000/api/kontakt/:id/uploadPhoto
+    @UseGuards(RoleCheckerGuard)
+    @AllowToRoles('administrator')
     @UseInterceptors(
         FileInterceptor('photo', {
             storage: diskStorage({
@@ -145,6 +155,8 @@ export class KontaktController {
     }
 
     @Delete(':kontaktId/deleteSlika/:slikaId') // DELETE http://localhost:3000/api/kontakt/:kontaktId/delete/:slikaId
+    @UseGuards(RoleCheckerGuard)
+    @AllowToRoles('korisnik')
     async deleteSlika(@Param('kontaktId') kontaktId: number, @Param('slikaId') slikaId: number) {
         const slika = await this.slikaService.findOne({
             kontaktId: kontaktId,
