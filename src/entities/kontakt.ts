@@ -5,6 +5,8 @@ import { Fotografija } from "./fotografija";
 import { Korisnik } from "./korisnik";
 import { Telefon } from "./telefon";
 import { Zadatak } from "./zadatak";
+import * as Validator from "class-validator";
+import { Allow } from "class-validator";
 
 @Index("uq_email", ["email"], { unique: true })
 @Index("fk_korisnik_kontakt_id", ["korisnikId"], {})
@@ -21,6 +23,12 @@ export class Kontakt {
     type: "varchar",
     unique: true,
     length: 50,
+  })
+  @Validator.IsNotEmpty()
+  @Validator.IsEmail({
+    allow_ip_domain: false,
+    allow_utf8_local_part: true,
+    require_tld: true,
   })
   email: string;
 

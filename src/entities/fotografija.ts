@@ -1,5 +1,6 @@
 import { Column, Entity, Index, JoinColumn, OneToOne, PrimaryGeneratedColumn, } from "typeorm";
 import { Kontakt } from "./kontakt";
+import * as Validator from "class-validator";
 
 @Index("uq_fotografija_kontakt_id", ["kontaktId"], { unique: true })
 @Index("fk_fotografija_konatakt_id", ["kontaktId"], {})
@@ -24,6 +25,7 @@ export class Fotografija {
     type: "varchar",
     length: 50,
   })
+  @Validator.IsString()
   putanja: string;
 
   @OneToOne(

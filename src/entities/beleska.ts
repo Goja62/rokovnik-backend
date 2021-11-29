@@ -1,5 +1,6 @@
 import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, } from "typeorm";
 import { Kontakt } from "./kontakt";
+import * as Validator from "class-validator";
 
 @Index("fk_beleska_kontakt_id", ["kontaktId"], {})
 @Entity("beleska")
@@ -22,6 +23,7 @@ export class Beleska {
     type: "text",
     name: "opis_beleske" 
   })
+  @Validator.IsString()
   opisBeleske: string;
 
   @ManyToOne(() => Kontakt, (kontakt) => kontakt.beleske, {
