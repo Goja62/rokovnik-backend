@@ -23,6 +23,9 @@ import { TelefonService } from './services/telefon/telefon.service';
 import { AuthController } from './controllers/api/auth.controller';
 import { AuthMiddleware } from './middlewares/auth.middleware';
 import { SlikaService } from './services/slika/slika.service';
+import { MailerModule, MailerService } from '@nestjs-modules/mailer';
+import { MailConfig } from 'config/mail.config';
+import { KontaktMailer } from './services/kontakt/kontakt.mailer.service';
 
 @Module({
   imports: [
@@ -43,7 +46,7 @@ import { SlikaService } from './services/slika/slika.service';
         Fotografija,
         Mesto,
         Zadatak,
-        Telefon
+        Telefon,
       ]
     }),
     TypeOrmModule.forFeature([
@@ -57,7 +60,13 @@ import { SlikaService } from './services/slika/slika.service';
       Mesto,
       Zadatak,
       Telefon
-    ])
+    ]),
+    MailerModule.forRoot({
+      transport: 'smtps://' + MailConfig.username + ':' + MailConfig.password + '@' + MailConfig.hostname,
+      defaults: {
+        from: MailConfig.senderEmail,
+      }
+    }),
   ],
   controllers: [
     AppController,
@@ -73,6 +82,7 @@ import { SlikaService } from './services/slika/slika.service';
     KontaktService,
     TelefonService,
     SlikaService,
+    KontaktMailer,
   ],
   exports: [
     AdministratorService,

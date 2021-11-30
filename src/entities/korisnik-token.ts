@@ -1,5 +1,6 @@
 import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn, } from "typeorm";
 import { Korisnik } from "./korisnik";
+import * as Validator from "class-validator";
 
 @Index("FK_korisnik_token_korisnik", ["korisnikId"], {})
 @Entity("korisnik_token")
@@ -22,11 +23,13 @@ export class KorisnikToken {
     type: "timestamp",
     name: "created_at",
   })
-  createdAt: Date;
+  createdAt: string;
 
   @Column({ 
-    type: "varchar" 
+    type: "text" 
   })
+  @Validator.IsNotEmpty()
+  @Validator.IsString()
   token: string;
 
   @Column({ 
@@ -40,6 +43,8 @@ export class KorisnikToken {
     name: "is_valid", 
     unsigned: true,
   })
+  @Validator.IsNotEmpty()
+  @Validator.IsIn([ 0, 1 ])
   isValid: number;
 
   @ManyToOne(

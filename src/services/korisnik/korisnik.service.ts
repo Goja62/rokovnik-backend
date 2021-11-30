@@ -6,10 +6,14 @@ import * as crypto from "crypto";
 import { ApiResponse } from "src/misc/api.response";
 import { EditKorisnikDto } from "src/dtos/korisnik/edit.korisnik.dto";
 import { KorisnikRegistrationDto } from "src/dtos/korisnik/korisnik.registration.dto";
+import { KorisnikToken } from "src/entities/korisnik-token";
 
 @Injectable()
 export class KorisnikService {
-    constructor(@InjectRepository(Korisnik) private readonly korisnik: Repository<Korisnik>) { }
+    constructor(
+        @InjectRepository(Korisnik) private readonly korisnik: Repository<Korisnik>,
+        @InjectRepository(KorisnikToken) private readonly korisnikToken: Repository<KorisnikToken>,
+    ) { }
 
     async sviKorisnici(): Promise<Korisnik[]> {
         return await this.korisnik.find({
@@ -93,4 +97,48 @@ export class KorisnikService {
         return await this.korisnik.save(korisnik)
     }
 
+    async addToken(korisnikId: number, token: string, expiresAt: string) {
+        const korisnikToken = new KorisnikToken()
+        korisnikToken.korisnikId = korisnikId;
+        korisnikToken.token = token;
+        korisnikToken.expiresAt = expiresAt;
+
+        return await this.korisnikToken.save(korisnikToken)
+    }
+
+    async getKorisnikToken(korisnikToken: string): Promise<KorisnikToken> {
+        return await this.korisnikToken.findOne({
+            token: korisnikToken,
+        })
+    }
+
+    async invalidateKorisnikToken(token: string): Promise<KorisnikToken | ApiResponse> {
+        const korisnikTOken = await this.korisnikToken.findOne({
+            token: token,
+        })
+
+        if (!this.korisnikToken) {
+            return new ApiResponse('Greška', -7001, "Nije pronađen token")
+        }
+
+        korisnikTOken.isValid = 0
+
+        await this.korisnikToken.save(korisnikTOken)
+
+        return await this.getKorisnikToken(token)
+    }
+
+    async invalidateKorisnikTokeni(korisnikId: number): Promise<(KorisnikToken | ApiResponse)[]> {
+        const korisnikTokeni = await this.korisnikToken.find({
+            korisnikId: korisnikId
+        })
+
+        const rezultati = []
+
+        for (const korisnikToken of korisnikTokeni) {
+            rezultati.push(this.invalidateKorisnikToken(korisnikToken.token));
+        }
+        
+        return rezultati;
+    }
 }

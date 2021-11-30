@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req } from "@nestjs/common";
+import { Body, Controller, HttpException, HttpStatus, Post, Req, UseGuards } from "@nestjs/common";
 import { LoginAdministratorDto } from "src/dtos/administrator/login.administrator.dto";
 import { Administrator } from "src/entities/administrator";
 import { ApiResponse } from "src/misc/api.response";
@@ -12,6 +12,11 @@ import { Request } from "express";
 import { jwtSecret } from "config/jwt.secret";
 import { LoginKorisnikDto } from "src/dtos/korisnik/login.korisnik.dto";
 import { KorisnikService } from "src/services/korisnik/korisnik.service";
+import { JwtRefreshDataDto } from "src/dtos/auth/jwt.refresh.data.dto";
+import { AllowToRoles } from "src/misc/allow.to.roles.descriptor";
+import { RoleCheckerGuard } from "src/misc/role.checker.guard";
+import { KorisnikRefreshTokenDto } from "src/dtos/auth/korisnik.refresh.token.dto";
+import { KorisnikToken } from "src/entities/korisnik-token";
 const funkcija = new Funkcije()
 
 
@@ -45,7 +50,7 @@ export class AuthController {
         jwtData.role = "administrator"
         jwtData.id = administrator.administratorId;
         jwtData.identity = administrator.username;
-        jwtData.exp = funkcija.istekToena(60 * 60 * 24 * 14);
+        jwtData.exp = funkcija.istekToena(60 *5);
         jwtData.ip = req.ip.toString();
         jwtData.ua = req.headers['user-agent']
 
@@ -54,13 +59,15 @@ export class AuthController {
         const responseObject = new LoginInfoDto(
             administrator.administratorId, 
             administrator.username, 
-            token
+            token,
+            '',
+            '',
         )
 
         return new Promise(resolve => { resolve(responseObject) })
     }
 
-    @Post('korisnik/login') // POST http://localhost:3000/auth/login/administrator
+    @Post('korisnik/login') // POST http://localhost:3000/auth/korisnik/login
     async doKorisnikLogin(@Body() data: LoginKorisnikDto, @Req() req: Request): Promise<LoginInfoDto | ApiResponse> {
         const korisnik = await this.korisnikService.getKorisnikByEmail(data.email)
 
@@ -85,19 +92,96 @@ export class AuthController {
         jwtData.role = "korisnik"
         jwtData.id = korisnik.korisnikId;
         jwtData.identity = korisnik.email;
-        jwtData.exp = funkcija.istekToena(60 * 60 * 24 * 14);
+        jwtData.exp = funkcija.istekToena(60 * 5);
         jwtData.ip = req.ip.toString();
         jwtData.ua = req.headers['user-agent']
 
         let token: string = jwt.sign(jwtData.toPlainObject(), jwtSecret)
 
+        const jwtRefreshData = new JwtRefreshDataDto()
+        jwtRefreshData.role = "korisnik";
+        jwtRefreshData.id = jwtData.id;
+        jwtRefreshData.identity = jwtData.identity;
+        jwtRefreshData.exp = funkcija.istekToena(60 * 60 * 24 * 31);
+        jwtRefreshData.ip = jwtData.ip;
+        jwtRefreshData.ua = jwtData.ua;
+
+        let refreshToken: string = jwt.sign(jwtRefreshData.toPlainObject(), jwtSecret)
+
+
+
         const responseObject = new LoginInfoDto(
             korisnik.korisnikId, 
             korisnik.email, 
-            token
+            token,
+            refreshToken,
+            funkcija.getIsoDate(jwtRefreshData.exp),
         )
 
+        await this.korisnikService.addToken(korisnik.korisnikId, refreshToken, funkcija.getDatabseDateFormat(funkcija.getIsoDate(jwtRefreshData.exp)))
+
         return new Promise(resolve => { resolve(responseObject) })
+    }
+
+    @Post('korisnik/refresh') // POST http://localhost:3000/auth/korisnik/refresh
+    async korisnikTokenRefresh(@Req() req: Request, @Body() data: KorisnikRefreshTokenDto): Promise<LoginInfoDto | ApiResponse> {
+        const korisnikToken = await this.korisnikService.getKorisnikToken(data.token)
+
+        if (!korisnikToken) {
+            return new ApiResponse("Greška", -8001, "Nije pronađen refresh token")
+        }
+
+        if (korisnikToken.isValid === 0) {
+            return new ApiResponse("Greška", -8002, "Token više nije validan")
+        }
+
+        const trenutniDatum = new Date()
+        const datumIsteka = new Date(korisnikToken.expiresAt)
+
+        if (datumIsteka.getTime() < trenutniDatum.getTime()) {
+            return new ApiResponse("Greška", -8003, "Token je sitekao")
+        }
+
+        let jwtRefreshData: JwtRefreshDataDto;
+
+        try {
+            jwtRefreshData = jwt.verify(data.token, jwtSecret)
+        } catch (e) {
+            throw new HttpException('Token nije pronađen', HttpStatus.UNAUTHORIZED)
+        }
+
+        if (!jwtRefreshData) {
+            throw new HttpException('Pogrešan token', HttpStatus.UNAUTHORIZED)
+        }
+
+        if (jwtRefreshData.ip !== req.ip.toString()) {
+            throw new HttpException('Netačna IP adresa', HttpStatus.UNAUTHORIZED)
+        }
+
+        if (jwtRefreshData.ua !== req.headers['user-agent']) {
+            throw new HttpException('Netačne informacije i user-agentu', HttpStatus.UNAUTHORIZED)
+        }
+
+
+        const jwtData = new JwtDataDto()
+        jwtData.role = jwtRefreshData.role;
+        jwtData.id = jwtRefreshData.id
+        jwtData.identity = jwtRefreshData.identity;
+        jwtData.exp = funkcija.istekToena(60 * 5);
+        jwtData.ip = jwtRefreshData.ip;;
+        jwtData.ua = jwtRefreshData.ua;
+
+        let token: string = jwt.sign(jwtData.toPlainObject(), jwtSecret)
+
+        const responseObject = new LoginInfoDto(
+            jwtData.id, 
+            jwtData.identity, 
+            token,
+            data.token,
+            funkcija.getIsoDate(jwtRefreshData.exp),
+        )
+
+        return responseObject;
     }
 
     @Post('korisnik/register') // POST http://localhost:3000/auth/korisnik/register

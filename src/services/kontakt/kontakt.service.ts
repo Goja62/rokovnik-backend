@@ -1,4 +1,4 @@
-import { Body, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { AddKontaktDto } from "src/dtos/kontakt/add.kontakt.dto";
 import { EditKontaktDto } from "src/dtos/kontakt/edit.kontakt.dto";
@@ -37,7 +37,7 @@ export class KontaktService {
         return await kontakt;
     }
 
-    async addKontakt(data: AddKontaktDto): Promise<Kontakt> {
+    async addKontakt(data: AddKontaktDto): Promise<Kontakt | ApiResponse> {
         let noviKontakt: Kontakt = new Kontakt()
         noviKontakt.email = data.email;
         noviKontakt.prezime = data.prezime;
@@ -111,7 +111,8 @@ export class KontaktService {
                 "telefoni"
             ]
         })
-    }        
+    }      
     
+
 }
 

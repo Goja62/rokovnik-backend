@@ -14,6 +14,7 @@ import * as fileType from "file-type"
 import { Funkcije } from "src/misc/funkcije";
 import { AllowToRoles } from "src/misc/allow.to.roles.descriptor";
 import { RoleCheckerGuard } from "src/misc/role.checker.guard";
+import { KontaktMailer } from "src/services/kontakt/kontakt.mailer.service";
 let funkcija = new Funkcije()
 
 @Controller('api/kontakt')
@@ -21,6 +22,7 @@ export class KontaktController {
     constructor(
         private kontaktService: KontaktService,
         private slikaService: SlikaService,
+        private kontaktMailer: KontaktMailer,
     ) {  }
 
     @Get()
@@ -39,9 +41,17 @@ export class KontaktController {
 
     @Post('add')
     @UseGuards(RoleCheckerGuard)
-    @AllowToRoles("korisnik")
-    async addKontakt(@Body() data: AddKontaktDto): Promise<Kontakt> {
-        return await this.kontaktService.addKontakt(data)
+    @AllowToRoles("korisnik", "administrator")
+    async addKontakt(@Body() data: AddKontaktDto): Promise<Kontakt | ApiResponse> {
+        const noviKontakt = await this.kontaktService.addKontakt(data)
+
+        if (noviKontakt instanceof ApiResponse ) {
+            return noviKontakt
+        }
+        
+         await this.kontaktMailer.sendKontaktEmail(noviKontakt)
+
+        return noviKontakt
     }
 
     @Patch('edit/:id')
