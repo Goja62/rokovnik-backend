@@ -67,7 +67,7 @@ export class AuthController {
         return new Promise(resolve => { resolve(responseObject) })
     }
 
-    @Post('korisnik/login') // POST http://localhost:3000/auth/korisnik/login
+    @Post('/login/korisnik') // POST http://localhost:3000/auth/korisnik/login
     async doKorisnikLogin(@Body() data: LoginKorisnikDto, @Req() req: Request): Promise<LoginInfoDto | ApiResponse> {
         const korisnik = await this.korisnikService.getKorisnikByEmail(data.email)
 
@@ -123,7 +123,7 @@ export class AuthController {
         return new Promise(resolve => { resolve(responseObject) })
     }
 
-    @Post('korisnik/refresh') // POST http://localhost:3000/auth/korisnik/refresh
+    @Post('refresh/korisnik') // POST http://localhost:3000/auth/korisnik/refresh
     async korisnikTokenRefresh(@Req() req: Request, @Body() data: KorisnikRefreshTokenDto): Promise<LoginInfoDto | ApiResponse> {
         const korisnikToken = await this.korisnikService.getKorisnikToken(data.token)
 
